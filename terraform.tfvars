@@ -1,0 +1,1 @@
+bootstrap-pub-sshkey-path = "~/.ssh/aws_rsa.pub"
