@@ -6,11 +6,21 @@ This project provides sample Terraform code for building out AWS infrastructure 
 
 These instructions will allow you to create infrastructure in Amazon from your local machine. 
 
+### Infrastructure created
+The following resources are created
+
+- VPC in us-east-1 region
+- Public subnets for edge services across two zones
+- Private subnets for WebLogic across two zones
+- Private subnets for Database across two zones
+- Network ACLs and Security Group rules to enable http/https and sqlnet traffic
+- Internet and NAT gateway to facilitate traffic to/from Internet
+- Bastion, application, and database servers
+
 ### Prerequisites
 
-- AWS account
 - AWS API user with administrative access
-    VPC, EC2
+    - VPC, EC2
 - Terraform 0.11.8+
     - https://www.terraform.io/downloads.html
 - AWS Terraform Provider
@@ -42,8 +52,25 @@ region=us-east-1
 
 
 ### SSH Access via Bastion
+All SSH access to EC2 instances is done through the bastion server. In order to SSH into any one of the servers in a private subnet, you must configure the bastion as a proxy in your SSH config file as follows.
 
-insert ssh config file
+#### SSH config example (`~/.ssh/config`)
+
+Be sure to replace the IP addresses shown below with the actual IP addresses created for any EC2 instaces.
+
+```
+Host jumpbox
+  HostName 34.239.123.252
+  User ec2-user
+  IdentityFile ~/.ssh/aws_rsa
+  ProxyCommand none
+
+Host weblogic1
+  HostName 10.0.100.4
+  User ec2-user
+  IdentityFile ~/.ssh/aws_rsa
+  ProxyCommand ssh jumpbox -W %h:%p
+```
 
 ## Authors
 
