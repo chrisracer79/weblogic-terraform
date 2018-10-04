@@ -31,9 +31,6 @@ Please check out:
 - [Building Cloud Infrastructure using Terraform](https://www.udemy.com/building-cloud-infrastructure-with-terraform/?couponCode=LEARNTF18)
 
 
-If you wish to learn more about Terraform, I offer an online Udemy course Building Cloud Infrastructure using Terraform 
-
-
 ### Prerequisites
 
 - AWS API user with administrative access
