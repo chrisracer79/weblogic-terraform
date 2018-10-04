@@ -4,23 +4,40 @@ This project provides sample Terraform code for building out AWS infrastructure 
 
 ## Getting Started
 
-These instructions will allow you to create infrastructure in Amazon from your local machine. 
+These instructions will allow you to create infrastructure in Amazon from your local machine. This Terraform can be used as a starting point for creating a 3-tier network deployment for hosting WebLogic applications that are fronted by load balancers and backed by an Oracle Database.
+
+The Terraform code here can be modified to suit your needs. 
 
 ### Infrastructure created
 The following resources are created
 
 - VPC in us-east-1 region
-- Public subnets for edge services across two zones
+- Public subnets for edge services across two availability zones
 - Private subnets for WebLogic across two zones
 - Private subnets for Database across two zones
-- Network ACLs and Security Group rules to enable http/https and sqlnet traffic
+- Network ACLs and Security Group rules to enable ssh, http/https and sqlnet traffic
 - Internet and NAT gateway to facilitate traffic to/from Internet
 - Bastion, application, and database servers
+
+It is important to note that this Terraform example does not install any software on any of the servers, including WebLogic. This is left as an exercise for the user. 
+
+## Learn More About Oracle WebLogic or Terraform on Udemy
+
+If you wish to learn more about Oracle WebLogic or Hashicorp Terraform, I offer two popular courses on Udemy.
+
+Please check out:
+
+- [Oracle WebLogic 12c for Administrators](https://www.udemy.com/oracle-weblogic-12c-for-administrators/?couponCode=LEARNWLS49)
+- [Building Cloud Infrastructure using Terraform](https://www.udemy.com/building-cloud-infrastructure-with-terraform/?couponCode=LEARNTF18)
+
+
+If you wish to learn more about Terraform, I offer an online Udemy course Building Cloud Infrastructure using Terraform 
+
 
 ### Prerequisites
 
 - AWS API user with administrative access
-    - VPC, EC2
+    - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html
 - Terraform 0.11.8+
     - https://www.terraform.io/downloads.html
 - AWS Terraform Provider
@@ -43,12 +60,30 @@ The AWS Terraform Provider is configured to load AWS access credentials from an 
 #### Exmaple AWS Config (`~/.aws/credentials`)
 ```
 [default]
-aws_access_key_id=<YOUR ACCESS KEY>
-aws_secret_access_key=<YOUR SECRET KEY> 
+aws_access_key_id=<YOUR AWS ACCESS KEY>
+aws_secret_access_key=<YOUR AWS SECRET KEY> 
 region=us-east-1
 ```
 
-### Run Terraform
+### Initialize Terraform
+
+```sh
+$ cd weblogic-terraform
+$ terraform init
+```
+
+### Create Infrastructure
+
+```sh
+$ terraform plan
+$ terraform apply
+```
+
+### Destroy Infrastructure
+
+```sh
+$ terraform destroy
+```
 
 
 ### SSH Access via Bastion
@@ -71,6 +106,8 @@ Host weblogic1
   IdentityFile ~/.ssh/aws_rsa
   ProxyCommand ssh jumpbox -W %h:%p
 ```
+
+## Next Steps
 
 ## Authors
 
