@@ -54,7 +54,7 @@ ingress {
   }
 
   # Apply to our public subnets
-  subnet_ids = ["${aws_subnet.public_edge_1.id}", "${aws_subnet.public_edge_2.id}"]
+  subnet_ids = ["${aws_subnet.public_edge.*.id}"]
 
 }
 
@@ -140,7 +140,7 @@ resource "aws_network_acl" "weblogic_nacl" {
   }
 
   # Apply to private  app subnets
-  subnet_ids = ["${aws_subnet.app_1.id}", "${aws_subnet.app_2.id}"]
+  subnet_ids = ["${aws_subnet.app.*.id}"]
 
 }
 
@@ -191,7 +191,7 @@ resource "aws_network_acl" "data_nacl" {
   }
 
   # Apply to private data subnets
-  subnet_ids = ["${aws_subnet.data_1.id}", "${aws_subnet.data_2.id}"]
+  subnet_ids = ["${aws_subnet.data.*.id}"]
 
 }
 

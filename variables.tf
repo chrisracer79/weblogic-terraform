@@ -1,4 +1,8 @@
 
+# VPC CIDR block
+variable "vpc_cidr" {
+  default = "10.0.0.0/16"
+}
 # region is used to specify the AWS region to use
 variable "region" {
     default = "us-east-1"
@@ -14,6 +18,10 @@ variable "zones" {
   }
 }
 
+variable "bastion_zone_indices" {
+  default = [0, 1]
+}
+
 # SSH public key to use when bootstrapping new EC2 instances
 variable "bootstrap-pub-sshkey-path" {
   default = "~/.ssh/aws_rsa.pub"
@@ -22,9 +30,11 @@ variable "bootstrap-pub-sshkey-path" {
 # Default AMI image used in this demonstration
 # Must change the image if you use a region other than US-EAST-1
 variable "default_ami" {
+  # Using Amazon Linux image
 
-  # Amazon Linux for US-EAST region
-  default = "ami-0ff8a91507f77f867"
+  default = {
+    us-east-1 = "ami-0ff8a91507f77f867"
+  }
 }
 
 

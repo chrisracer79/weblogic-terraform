@@ -1,85 +1,46 @@
+locals {
+  # Each prefix gets a /24 (based on default VPC CIDR block)
+  public_tier_prefix = "${cidrsubnet("${var.vpc_cidr}", 4, 0)}"
+  app_tier_prefix = "${cidrsubnet("${var.vpc_cidr}", 4, 1)}"
+  data_tier_prefix = "${cidrsubnet("${var.vpc_cidr}", 4, 2)}"
+}
 
-resource "aws_subnet" "public_edge_1" {
+
+resource "aws_subnet" "public_edge" {
     vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.1.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],0)}"
-
+    count = "${length(var.zones[var.region])}"
+    cidr_block = "${cidrsubnet("${local.public_tier_prefix}", 3, count.index)}"
+    availability_zone = "${element(var.zones[var.region],count.index)}"
     map_public_ip_on_launch = "true"
 
     tags {
-        Name = "Public Subnet"
+        Name = "WLS Public Subnet ${count.index}"
     }
 }
-resource "aws_subnet" "public_edge_2" {
+
+
+
+resource "aws_subnet" "app" {
     vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.2.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],1)}"
-
-    map_public_ip_on_launch = "true"
+    count = "${length(var.zones[var.region])}"
+    cidr_block = "${cidrsubnet("${local.app_tier_prefix}", 3, count.index)}"
+    availability_zone = "${element(var.zones[var.region],count.index)}"
 
     tags {
-        Name = "Public Subnet"
+        Name = "WLS App subnet ${count.index}"
     }
 }
 
-
-resource "aws_subnet" "app_1" {
+resource "aws_subnet" "data" {
     vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.100.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],0)}"
+    count = "${length(var.zones[var.region])}"
+    cidr_block = "${cidrsubnet("${local.data_tier_prefix}", 3, count.index)}"
+    availability_zone = "${element(var.zones[var.region],count.index)}"
 
     tags {
-        Name = "Prviate app subnet"
+        Name = "WLS Data subnet ${count.index}"
     }
 }
-
-resource "aws_subnet" "app_2" {
-    vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.101.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],1)}"
-
-    tags {
-        Name = "Prviate app subnet"
-    }
-}
-
-resource "aws_subnet" "data_1" {
-    vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.102.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],0)}"
-
-    tags {
-        Name = "Prviate DB subnet"
-    }
-}
-resource "aws_subnet" "data_2" {
-    vpc_id = "${aws_vpc.weblogic_vpc.id}"
-
-    cidr_block = "10.0.103.0/28"
-
-    # Use first AZ in region
-    availability_zone = "${element(var.zones[var.region],1)}"
-
-    tags {
-        Name = "Prviate DB subnet"
-    }
-}
-
 resource "aws_internet_gateway" "igw" {
      vpc_id = "${aws_vpc.weblogic_vpc.id}"
 }
@@ -87,10 +48,10 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_eip" "nat_eip" {
     vpc      = true
 }
+
 resource "aws_nat_gateway" "ngw" {
   allocation_id = "${aws_eip.nat_eip.id}"
-  subnet_id     = "${aws_subnet.public_edge_1.id}"
-
+  subnet_id     = "${aws_subnet.public_edge.*.id[0]}"
   depends_on = ["aws_internet_gateway.igw"]
 }
 
@@ -104,7 +65,7 @@ resource "aws_route_table" "public_route" {
 
 
   tags {
-    Name = "Public route to internet"
+    Name = "WLS Public route to internet"
   }
 }
 
@@ -117,34 +78,24 @@ resource "aws_route_table" "private_route" {
   }
 
   tags {
-    Name = "Private route to NAT"
+    Name = "WLS Private route to NAT"
   }
 }
 
-resource "aws_route_table_association" "edge1" {
-  subnet_id      = "${aws_subnet.public_edge_1.id}"
-  route_table_id = "${aws_route_table.public_route.id}"
-}
-resource "aws_route_table_association" "edge2" {
-  subnet_id      = "${aws_subnet.public_edge_2.id}"
+resource "aws_route_table_association" "public" {
+  count = "${length(var.zones)}"
+  subnet_id      = "${aws_subnet.public_edge.*.id[count.index]}"
   route_table_id = "${aws_route_table.public_route.id}"
 }
 
-resource "aws_route_table_association" "app1" {
-  subnet_id      = "${aws_subnet.app_1.id}"
-  route_table_id = "${aws_route_table.private_route.id}"
-}
-resource "aws_route_table_association" "app2" {
-  subnet_id      = "${aws_subnet.app_2.id}"
+resource "aws_route_table_association" "app" {
+  count = "${length(var.zones)}"
+  subnet_id      = "${aws_subnet.app.*.id[count.index]}"
   route_table_id = "${aws_route_table.private_route.id}"
 }
 
-resource "aws_route_table_association" "db1" {
-  subnet_id      = "${aws_subnet.data_1.id}"
-  route_table_id = "${aws_route_table.private_route.id}"
-}
-
-resource "aws_route_table_association" "db2" {
-  subnet_id      = "${aws_subnet.data_2.id}"
+resource "aws_route_table_association" "data" {
+  count = "${length(var.zones)}"
+  subnet_id      = "${aws_subnet.data.*.id[count.index]}"
   route_table_id = "${aws_route_table.private_route.id}"
 }
